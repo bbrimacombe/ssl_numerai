@@ -21,10 +21,6 @@ class config:
 	LR = 0.00005 #0.0001
 	BETA_1 = 0.95 #By default using adam 
 	BETA_2 = 0.98
-	MASK_PROB = 0.1 #Probability of masking element
-	RAND_PROB = 0.05 #0.1 #Probability of element being set to random value given it is not masked
-	MASK_VAL = -1 
-	AUGMENT_FEATURE_IDS = False #Augment feature identities? Todo.
 
 	### Synthetic features parameters
 	SYNTH_FEATURES = 12
