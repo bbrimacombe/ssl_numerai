@@ -18,7 +18,7 @@ def build_model(config):
 	input_2 = layers.Input((1,), dtype=tf.float32)
 
 	model_1 = layers.Dense(100, activation=keras.activations.relu, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(input_1_cast) #1000
-	model_1 = layers.Dense(1000, activation=activation, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(model_1)
+	model_1 = layers.Dense(1000, activation=keras.activations.swish, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(model_1)
 	model_1 = layers.Lambda(lambda x: K.stop_gradient(x))(model_1)
 
 	input_1_cast = layers.Dropout(0.3)(input_1_cast, training=True) #training=True bc we want test set information to be same
