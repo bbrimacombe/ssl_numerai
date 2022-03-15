@@ -88,10 +88,6 @@ features = [c for c in training_data if c.startswith("feature_")]
 read_columns = features + [ERA_COL, DATA_TYPE_COL, TARGET_COL]
 ###########
 
-#Try only using ssl features
-#################################
-bins = []
-
 if synth:
 
     synth_train = pd.read_pickle(synth_data[0])
