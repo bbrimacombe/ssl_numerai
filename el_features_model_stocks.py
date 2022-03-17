@@ -9,15 +9,6 @@ from tensorflow.keras import backend as K
 
 #tf.keras.mixed_precision.set_global_policy('mixed_float16')
 
-
-def get_mixing_block(config, enc_in):
-	enc_in = layers.Permute((2, 1))((layers.Dense(config.SSL_STOCKS+config.FEAT_ID_DIM, activation="linear")(layers.Permute((2, 1))(enc_in)))) 
-	enc_in = layers.Dropout(0.1)(enc_in)
-	enc_in = layers.Dense(config.SSL_FEATURES, activation=keras.activations.swish)(enc_in)
-	enc_in = layers.Dropout(0.1)(enc_in)
-	return enc_in
-
-
 def build_model(config):
 	#construct keras model graph 
 
@@ -75,7 +66,6 @@ def build_model(config):
 	return model
 
 def load_model(config):
-	#tf.keras.mixed_precision.set_global_policy('mixed_float16')
 	model = tf.keras.models.load_model(config.MODELS_PATH+config.MODEL_NAME) #+".h5"
 	model.summary()
 
@@ -83,22 +73,8 @@ def load_model(config):
 
 
 def build_deterministic_partitions(config, data):
-
+	#Feature partitions not implemented in this version
 	return (4*data).astype(np.int16)
-
-	#For now just some quick heuristics
-	#data must be a numpy array of shape dimension 2
-	first_third = data[:, :config.NUM_FEATURES//3]
-	second_third = data[:, config.NUM_FEATURES//3:2*config.NUM_FEATURES//3]
-	third_third = data[:, 2*config.NUM_FEATURES//3:]
-	stride_four = data[:, ::4]
-	stride_seven = data[:, ::7]
-
-	print("---------------------------------")
-	print(first_third)
-	print(second_third)
-	print("---------------------------------")
-	return first_third, second_third, third_third, stride_four, stride_seven #data[:, :100] # data #
 
 
 def build_tf_train(config, x, y, eras):
@@ -187,33 +163,6 @@ def mse(y_true, y_pred):
 def train_model(config):
 	keras.backend.clear_session()
 
-
-	if False:
-		tf_data = build_tf_train(config, *load_train_data(config))
-
-		for i in range(10):
-			tf.random.set_seed(i)
-			model = build_model(config)
-			############################
-			#We need to build a seperate model object for training due to a save/load bug in h5py
-			input_1, input_2, input_3, input_4, input_5 = model.input 
-			#input_1 = model.input 
-			model_targets = model.get_layer("targets").output 
-			model_features = model.get_layer("features").output
-
-			train_model =  tf.keras.Model([input_1, input_2, input_3, input_4, input_5], [model_targets, model_features], name="model")
-			train_model.compile(loss={"targets":keras.losses.MeanSquaredError(), "features":keras.losses.MeanSquaredError()}, loss_weights={"targets":10, "features":1}, optimizer=keras.optimizers.Adam(learning_rate=config.LR, beta_1=config.BETA_1, beta_2=config.BETA_2)) 
-
-			model.save(config.MODELS_PATH+config.MODEL_NAME+str(i))
-
-
-	#For random, un-optimized builds
-	if False:
-		model = build_model(config) #Didn't work
-		model.save(config.MODELS_PATH+config.MODEL_NAME)
-		print("Model saved.")
-		return 
-
 	if os.path.exists(config.MODELS_PATH+config.MODEL_NAME):
 		model = load_model(config)
 	else:
@@ -221,9 +170,7 @@ def train_model(config):
 
 	############################
 	#We need to build a seperate model object for training due to a save/load bug in h5py
-	#input_1, input_2, input_3, input_4, input_5 = model.input 
 	input_1, input_2 = model.input
-	#input_1 = model.input 
 	model_targets = model.get_layer("targets").output 
 	model_features = model.get_layer("features").output
 
@@ -231,7 +178,6 @@ def train_model(config):
 
 	#SparseCategoricalCrossentropy
 	train_model.compile(loss={"features":keras.losses.MeanSquaredError(), "targets":keras.losses.MeanSquaredError()}, loss_weights={"targets":10, "features":1}, optimizer=keras.optimizers.Adam(learning_rate=config.LR, beta_1=config.BETA_1, beta_2=config.BETA_2))
-
 
 	tf_data, tf_test = build_tf_train(config, *load_train_data(config))
 
