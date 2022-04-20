@@ -61,24 +61,8 @@ def load_model(config):
 
 
 def build_deterministic_partitions(config, data):
-
+	#Deprecated. Now just data-casting for 4x memory efficiency. 
 	return (4*data).astype(np.int16)
-
-	"""
-	#For now just some quick heuristics
-	#data must be a numpy array of shape dimension 2
-	first_third = data[:, :config.NUM_FEATURES//3]
-	second_third = data[:, config.NUM_FEATURES//3:2*config.NUM_FEATURES//3]
-	third_third = data[:, 2*config.NUM_FEATURES//3:]
-	stride_four = data[:, ::4]
-	stride_seven = data[:, ::7]
-
-	print("---------------------------------")
-	print(first_third)
-	print(second_third)
-	print("---------------------------------")
-	return first_third, second_third, third_third, stride_four, stride_seven #data[:, :100] # data #
-	"""
 
 
 def build_tf_train(config, x, y, eras):
@@ -128,11 +112,6 @@ def load_train_data(config):
 	era_idx = np.interp(era_idx, [0, max_era], [0, config.SYNTH_FEATURES-1]) #Interpolate to smaller scale
 	era_idx = np.rint(era_idx).astype(np.int16) #Round down to nearest
 
-	print(era_idx)
-	print("-----")
-
-	print(target_cols)
-	print(train_data[target_cols])
 	#train_data[feature_cols+target_cols] = train_data[feature_cols+target_cols].astype(np.int16)
 
 	print(train_data[feature_cols].to_numpy().astype(np.float32))
