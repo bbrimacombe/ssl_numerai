@@ -14,6 +14,7 @@ I found it improved generalization to linearly interpolate eras from [0, ~550] d
 Once this model is trained, I create new features in two ways:
 
 1.) Use the 12 dimensional latent space as new features.
+
 2.) Use the argmax of the 12 dimensional latent space as a feature. As the data is not i.d.d., this is used to improve the generalization of our representation when out-of-sample. 
 
 Combining the original feature-space with the argmax feature improves the baseline LightGBMR model sharpe by almost 3% on validation. Full results can be found here:
