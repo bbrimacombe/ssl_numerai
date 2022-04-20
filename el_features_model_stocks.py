@@ -84,22 +84,16 @@ def build_tf_train(config, x, y, eras):
 	from sklearn.model_selection import train_test_split
 	data_train, data_test, era_train, era_test, y_train, y_test = train_test_split(feat, eras, y, test_size=0.1, random_state=0) #0.05
 
-	print("feat------------------------")
-	print(data_train)
 	#parr_inputs = tf.data.Dataset.from_tensor_slices((build_deterministic_partitions(config, x)))
 	parr_inputs = tf.data.Dataset.from_tensor_slices((data_train, era_train))
 	parr_targets = tf.data.Dataset.from_tensor_slices((data_train, y_train)) 
-	#parr_targets = tf.data.Dataset.from_tensor_slices((y)) 
 	tf_data = tf.data.Dataset.zip((parr_inputs, parr_targets))
 	tf_data = tf_data.shuffle(10000000).batch(config.BATCH_SIZE)
 
-	#"""
 	parr_inputs = tf.data.Dataset.from_tensor_slices((data_test, era_test))
 	parr_targets = tf.data.Dataset.from_tensor_slices((data_test, y_test)) 
-	#parr_targets = tf.data.Dataset.from_tensor_slices((y)) 
 	tf_test = tf.data.Dataset.zip((parr_inputs, parr_targets))
 	tf_test = tf_test.shuffle(1000).batch(config.BATCH_SIZE)
-	#"""
 
 	return tf_data, tf_test #(data_train, [labels_train, data_train]), (data_test, [labels_test, data_test])
 
@@ -109,14 +103,8 @@ def load_train_data(config):
 	print("Loading numerai train data...")
 	train_data = pd.read_parquet(config.DATA_PATH+config.NUMERAI_DATA_PATH+'numerai_training_data.parquet').fillna(0.5)
 
-	#train_data = train_data[:10000]
-
 	feature_cols = [c for c in train_data if c.startswith("feature_")]
 	target_cols = [c for c in train_data if c.startswith("target_")]
-
-	#uniform distribution across features [393, 104, 159, 127, 267]
-	print(np.histogram(train_data[feature_cols].iloc[[1]], bins=5))
-	#raise Exception
 
 	era_vals = train_data["era"].unique()
 	max_era = era_vals.max()
@@ -128,18 +116,6 @@ def load_train_data(config):
 	#era_idx = np.interp(era_idx, [0, max_era], [0, max_era//2]) #No era interpolation for now
 	era_idx = np.rint(era_idx) / (len(word2id)-1) #Round down to nearest
 
-	print(era_idx)
-	#print(era_idx[200000])
-	#print(era_idx[-200000])
-	print("-----")
-
-	print(target_cols)
-	print(train_data[target_cols])
-	#train_data[feature_cols+target_cols] = train_data[feature_cols+target_cols].astype(np.int16)
-
-	print(train_data[feature_cols].to_numpy().astype(np.float32))
-	print("----------------------")
-	print(train_data[target_cols].to_numpy().astype(np.float32))
 
 	return train_data[feature_cols].to_numpy(), train_data[target_cols].to_numpy(), era_idx
 
@@ -176,7 +152,6 @@ def train_model(config):
 
 	train_model = tf.keras.Model([input_1, input_2], [model_features, model_targets], name="model")
 
-	#SparseCategoricalCrossentropy
 	train_model.compile(loss={"features":keras.losses.MeanSquaredError(), "targets":keras.losses.MeanSquaredError()}, loss_weights={"targets":10, "features":1}, optimizer=keras.optimizers.Adam(learning_rate=config.LR, beta_1=config.BETA_1, beta_2=config.BETA_2))
 
 	tf_data, tf_test = build_tf_train(config, *load_train_data(config))
@@ -187,10 +162,8 @@ def train_model(config):
 	#Load new data and train for config.EPOCHS epochs
 	for i in range(0, config.EPOCHS):
 		print(f"Train epoch {i}...")
-		#train_model.evaluate(tf_test)
 		train_model.fit(tf_data, validation_data=tf_test, callbacks=[csv_logger])
-		#train_model.evaluate(tf_data)
-		#raise Exception
+		
 		#Save the original graph
 		model.save(config.MODELS_PATH+config.MODEL_NAME)
 		if (i % 5) == 0:
@@ -223,7 +196,7 @@ def build_synthetic_features(config, numerai_data):
 
 	rand_eras = np.random.randint(0, high=575, size=config.SYNTH_STOCKS, dtype=int) / 575 #config.SYNTH_FEATURES-1
 	rand_stocks = np.random.randint(0, high=5, size=(config.SYNTH_STOCKS, len(feature_cols)), dtype=int)
-	#synth_features = np.Concatenate([rand_stocks, rand_eras], axis=0)
+
 	print(rand_eras)
 	print(rand_stocks)
 
