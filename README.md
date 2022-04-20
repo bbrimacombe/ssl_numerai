@@ -4,8 +4,10 @@ The autoencoder takes two inputs: the features for a single row, and the era num
 The autoencoder does two kinds of augmentation to the inputs:
 
 1.) Maps them through a randomly initialized, frozen deep network. This is called extreme learning (used here for improved generalization).
+
 2.) Concatenates the original features with 0.3 dropout to the “extreme” features.
 The model encodes these inputs to a 12-dimensional latent space. Then it decodes the latent back to the full original feature space and is scored with mean squared error.
+
 I train only on train-data eras.
 I found it improved generalization to linearly interpolate eras from [0, ~550] down to [0, 12]. For example, era 200 will become era 5. During validation, era is set to the max value seen during training.
 
