@@ -23,7 +23,7 @@ def build_model(config):
 	model_1 = layers.Dense(1000, activation=keras.activations.sigmoid, kernel_initializer=kernel_initializer, bias_initializer=bias_initializer)(model_1)
 	model_1 = layers.Lambda(lambda x: K.stop_gradient(x))(model_1)
 
-	input_1_cast = layers.Dropout(0.3)(input_1_cast, training=True) #training=True bc we want test set information to be same
+	input_1_cast = layers.Dropout(0.3)(input_1_cast, training=True) #training=True bc we want test set to use dropout
 
 	input_1_cast = layers.Concatenate(axis=-1)([input_1_cast, input_2, model_1])
 
