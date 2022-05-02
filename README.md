@@ -6,6 +6,7 @@ The autoencoder does two kinds of augmentation to the inputs:
 1.) Maps them through a randomly initialized, frozen deep network. This is called extreme learning (used here for improved generalization).
 
 2.) Concatenates the original features with 0.3 dropout to the “extreme” features.
+
 The model encodes these inputs to a 12-dimensional latent space. Then it decodes the latent back to the full original feature space and is scored with mean squared error.
 
 I train only on train-data eras.
